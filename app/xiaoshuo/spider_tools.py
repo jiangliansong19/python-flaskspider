@@ -8,12 +8,14 @@
 from functools import wraps
 from random import choice, randint
 from time import ctime, sleep, time
+from urllib.parse import quote
 
 import pymysql
 import requests
 from requests.exceptions import RequestException
 from app.models import Fiction, Fiction_Content, Fiction_Lst
 from app import db
+import re
 
 #请求头
 headers = {}
@@ -60,8 +62,7 @@ def get_one_page(url, proxies=None, sflag=1):
 
             print('正在下载:', url)
             if proxies:
-                r = requests.get(
-                    url, headers=headers, timeout=5, proxies=proxies)
+                r = requests.get(url, headers=headers, timeout=5, proxies=proxies)
             else:
                 r = requests.get(url, headers=headers, timeout=5)
 
@@ -75,6 +76,39 @@ def get_one_page(url, proxies=None, sflag=1):
                 return r.text
             else:
                 continue
+
+
+def get_baidu_search_urls(keyword, timeout=5):
+    url = u'https://www.baidu.com/baidu?wd='+quote(keyword)+'&tn=monline_dg&ie=utf-8'
+    headers['User-Agent'] = choice(agents)
+    r = requests.get(url ,timeout=timeout, headers=headers)
+    if r.status_code==200:
+        html = r.text
+    else:
+        html = u''
+        print ('[ERROR]' + url + u'get此url返回的http状态码不是200')
+
+    o_urls = re.findall(r'href\=\"http\:\/\/www\.baidu\.com\/link\?url\=[\w|-]+\" class\=\"c\-showurl\"', html)
+    o_urls = list(set(o_urls))#去重
+    result_urls = []
+    for string in o_urls:
+        url = re.match(r'href=\"(.*)\" class=(.*)', string, re.M|re.I).group(1)
+        real_url = get_real(url)
+        if "qidian" not in real_url:
+            result_urls.append(real_url)
+    return result_urls
+
+def get_real(o_url):
+    '''获取重定向url指向的网址'''
+    r = requests.get(o_url, allow_redirects = False)#禁止自动跳转
+    if r.status_code == 302:
+        try:
+            return r.headers['location']#返回指向的地址
+        except:
+            pass
+    return o_url#返回源地址
+
+
 
 
 def insert_fiction(fiction_name, fiction_id, fiction_real_url, fiction_img,
@@ -125,3 +159,4 @@ def update_fiction(fiction_id, update_time, new_content, new_url):
     fiction.new_url = new_url
     db.session.add(fiction)
     db.session.commit()
+

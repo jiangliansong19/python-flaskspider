@@ -79,7 +79,7 @@ CREATE TABLE `fiction` (
   `fiction_id` varchar(255) DEFAULT NULL,
   `fiction_real_url` varchar(255) DEFAULT NULL,
   `fiction_img` varchar(255) DEFAULT NULL,
-  `fiction_author` char(30) DEFAULT NULL,
+  `fiction_author` varchar(255) DEFAULT NULL,
   `fiction_comment` varchar(255) DEFAULT NULL,
   `update` varchar(255) DEFAULT NULL,
   `new_content` varchar(255) DEFAULT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE `fiction_content` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `fiction_url` varchar(255) DEFAULT NULL,
   `fiction_content` longtext,
-  `fiction_id` int(11) DEFAULT NULL,
+  `fiction_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3274 DEFAULT CHARSET=utf8;
 
