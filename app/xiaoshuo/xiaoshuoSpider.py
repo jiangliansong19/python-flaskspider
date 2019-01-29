@@ -40,7 +40,7 @@ def search_fiction(name, flag=1):
                 fiction_img = fiction_url + fiction_img
 
     #获取小说作家 笔名
-    fiction_author = re.search(r'>作.*者[:|：](.*)<', html, re.M|re.I).group(1)
+    fiction_author = re.search(r'>作.*者[:|：](.*?)<', html, re.M|re.I).group(1)
     fiction_comment = "主角狂霸拽··"
     fictions = (name, fiction_url, fiction_img, fiction_author,
                 fiction_comment)
