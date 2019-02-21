@@ -89,26 +89,50 @@ def get_baidu_search_urls(keyword, timeout=5):
         print ('[ERROR]' + url + u'get此url返回的http状态码不是200')
 
     o_urls = re.findall(r'href\=\"http\:\/\/www\.baidu\.com\/link\?url\=[\w|-]+\" class\=\"c\-showurl\"', html)
-    o_urls = list(set(o_urls))#去重
+    o_urls = list(set(o_urls))  # 去重
     result_urls = []
     for string in o_urls:
         url = re.match(r'href=\"(.*)\" class=(.*)', string, re.M|re.I).group(1)
         real_url = get_real(url)
-        if "qidian" not in real_url:
+        # if "qidian" not in real_url:
+        if "biqu" in real_url and 'm.' not in real_url:
             result_urls.append(real_url)
     return result_urls
 
+
 def get_real(o_url):
-    '''获取重定向url指向的网址'''
-    r = requests.get(o_url, allow_redirects = False)#禁止自动跳转
+    # 获取重定向url指向的网址
+    r = requests.get(o_url, allow_redirects=False)  # 禁止自动跳转
     if r.status_code == 302:
         try:
-            return r.headers['location']#返回指向的地址
+            return r.headers['location']  # 返回指向的地址
         except:
             pass
-    return o_url#返回源地址
+    return o_url  # 返回源地址
 
 
+def append_diff_url(first, last):
+    if 'www.biquge.info' in first:
+        return first + last
+    if 'www.biquguo.com' in first:
+        return first + last
+
+    url = first.split('//')
+    first = url[-1].split('/')[0]
+    result = first + last
+    result = re.sub(r'\/{2,}', '/', result)
+    if 'http' in url[0]:
+        result = url[0] + '//' + result
+    return result
+
+
+# 生成fiction_id
+def generate_fiction_id(fiction_name):
+    if type(fiction_name) is not str: return ''
+    tmp = ''
+    for x in map(ord, fiction_name.replace(' ', '')):
+        tmp += str(x)
+    return tmp
 
 
 def insert_fiction(fiction_name, fiction_id, fiction_real_url, fiction_img,
@@ -160,3 +184,8 @@ def update_fiction(fiction_id, update_time, new_content, new_url):
     db.session.add(fiction)
     db.session.commit()
 
+
+def delete_fiction(fiction_name):
+    fiction = Fiction().query.filter_by(fiction_name=fiction_name).first()
+    db.session.delete(fiction)
+    db.session.commit()
